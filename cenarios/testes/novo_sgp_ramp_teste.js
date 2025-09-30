@@ -16,10 +16,10 @@ export function handleSummary(data) {
 // Ramp Test
 export const options = {
   stages: [
-    { duration: '1s', target: 1 },   // sobe para 10 VUs
-    { duration: '1s', target: 1 },   // aumenta para 30
-    { duration: '1s', target: 1 },   // atinge 50
-    { duration: '1s', target: 0 },    // volta para 0
+    { duration: '1s', target: 1 },
+    { duration: '1s', target: 1 },
+    { duration: '1s', target: 1 },
+    { duration: '1s', target: 0 },
   ],
 };
 
@@ -36,47 +36,22 @@ function flow() {
   track(loginRes, "Login");
   const token = loginRes.json('token');
   if (!token) return;
-  const authHeaders = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } };
+  const authHeaders = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' } };
   sleep(1);
 
-  // Turmas
-  let turmasRes = http.get(`${BASE_URL}/abrangencias/turmas/vigentes`, authHeaders);
-  track(turmasRes, "Turmas vigentes"); sleep(1);
-
-  // Pendências
-  let pendenciasRes = http.get(`${BASE_URL}/pendencias/listar?turmaCodigo=&tipoPendencia=0&tituloPendencia=&numeroPagina=1&numeroRegistros=10`, authHeaders);
-  track(pendenciasRes, "Pendências"); sleep(1);
-
-  // Relatório de Faltas
-  let relatorioRes = http.post(`${BASE_URL}/relatorios/faltas-frequencia-mensal`, JSON.stringify({
-    exibirHistorico: false, anoLetivo: "2025", codigoDre: "108100", codigoUe: "-99", modalidade: "5", codigosTurmas: ["-99"], mesesReferencias: ["4"], tipoFormatoRelatorio: "1",
-  }), authHeaders);
-  track(relatorioRes, "Relatório de Faltas"); sleep(1);
-
-  // Diário de Bordo
-  let diarioRes = http.post(`${BASE_URL}/diarios-bordo`, JSON.stringify({
-    aulaId: "251810099", planejamento: "Teste automatizado k6", reflexoesReplanejamento: "", componenteCurricularId: "512"
-  }), authHeaders);
-  track(diarioRes, "Diário de Bordo"); sleep(1);
-
-  // Conselho
-  let conselhoRes = http.post(`${BASE_URL}/conselhos-classe/recomendacoes`, JSON.stringify({
-    conselhoClasseId: "12345", alunoCodigo: "987654", recomendacao: "Aluno demonstra boa participação, mas precisa reforçar leitura."
-  }), authHeaders);
-  track(conselhoRes, "Conselho de Classe"); sleep(1);
-
-  // Calendário
-  let calendarioRes = http.get(`${BASE_URL}/calendarios/frequencias?anoLetivo=2025&mes=9`, authHeaders);
-  track(calendarioRes, "Calendário - Frequências"); sleep(1);
-
-  // Fechamento
-  let fechamentoRes = http.post(`${BASE_URL}/fechamentos/turmas`, JSON.stringify([{
-    id: 561, turmaId: "2853538", bimestre: 3, disciplinaId: "1105", notaConceitoAlunos: [{ codigoAluno: "6539974", disciplinaId: 138, nota: 10, conceitoId: null }], justificativa: null
-  }]), authHeaders);
-  track(fechamentoRes, "Fechamento de Turmas"); sleep(1);
+  // Mesmos endpoints do load_test.js
+  let turmasRes = http.get(`${BASE_URL}/abrangencias/turmas/vigentes`, authHeaders); track(turmasRes, "Turmas vigentes"); sleep(1);
+  let pendenciasRes = http.get(`${BASE_URL}/pendencias/listar?turmaCodigo=&tipoPendencia=0&tituloPendencia=&numeroPagina=1&numeroRegistros=10`, authHeaders); track(pendenciasRes, "Pendências"); sleep(1);
+  let relatorioRes = http.post(`${BASE_URL}/relatorios/faltas-frequencia-mensal`, JSON.stringify({ exibirHistorico: false, anoLetivo: "2025", codigoDre: "108100", codigoUe: "-99", modalidade: "5", codigosTurmas: ["-99"], mesesReferencias: ["4"], tipoFormatoRelatorio: "1" }), authHeaders); track(relatorioRes, "Relatório de Faltas"); sleep(1);
+  let diarioRes = http.post(`${BASE_URL}/diarios-bordo`, JSON.stringify({ aulaId: "251810099", planejamento: "Teste automatizado k6", reflexoesReplanejamento: "", componenteCurricularId: "512" }), authHeaders); track(diarioRes, "Diário de Bordo"); sleep(1);
+  let conselhoRes = http.post(`${BASE_URL}/conselhos-classe/recomendacoes`, JSON.stringify({ conselhoClasseId: "12345", alunoCodigo: "987654", recomendacao: "Aluno demonstra boa participação, mas precisa reforçar leitura." }), authHeaders); track(conselhoRes, "Conselho de Classe"); sleep(1);
+  let calendarioRes = http.get(`${BASE_URL}/calendarios/frequencias?anoLetivo=2025&mes=9`, authHeaders); track(calendarioRes, "Calendário - Frequências"); sleep(1);
+  let fechamentoRes = http.post(`${BASE_URL}/fechamentos/turmas`, JSON.stringify([{ id: 561, turmaId: "2853538", bimestre: 3, disciplinaId: "1105", notaConceitoAlunos: [{ codigoAluno: "6539974", disciplinaId: 138, nota: 10, conceitoId: null }] }]), authHeaders); track(fechamentoRes, "Fechamento de Turmas"); sleep(1);
+  let filtrosRes = http.get(`${BASE_URL}/relatorios/filtros/componentes-curriculares/anos-letivos/2025/ues/-99/modalidades/5/?anos=-99&anos=1&anos=2&anos=3&anos=4&anos=5&anos=6&anos=7&anos=8&anos=9`, authHeaders); track(filtrosRes, "Relatório - Filtros Componentes Curriculares"); sleep(1);
+  let parecerRes = http.post(`${BASE_URL}/relatorios/pareceres-conclusivos`, JSON.stringify({ anoLetivo: 2025, dreCodigo: "108100", ueCodigo: "", modalidade: "5", semestre: null, ciclo: 0, anos: [], parecerConclusivoId: 0, tipoFormatoRelatorio: "1", historico: false }), authHeaders); track(parecerRes, "Relatório - Pareceres Conclusivos"); sleep(1);
+  let dresRes = http.get(`${BASE_URL}/abrangencias/false/dres`, authHeaders); track(dresRes, "Abrangências - DREs"); sleep(1);
 }
 
-// Métricas
 function track(res, name) {
   Duration.add(res.timings.duration);
   Reqs.add(1);

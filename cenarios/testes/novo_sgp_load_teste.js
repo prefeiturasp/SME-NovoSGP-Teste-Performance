@@ -15,8 +15,8 @@ export function handleSummary(data) {
 
 // Load Test
 export const options = {
-  vus: 1,        // 10 usuários simultâneos
-  duration: '1s', // executa por 5 minutos
+  vus: 1,
+  duration: '1s',
 };
 
 const BASE_URL = 'https://hom-novosgp.sme.prefeitura.sp.gov.br/api/v1';
@@ -32,7 +32,7 @@ function flow() {
   track(loginRes, "Login");
   const token = loginRes.json('token');
   if (!token) return;
-  const authHeaders = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } };
+  const authHeaders = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' } };
   sleep(1);
 
   // Turmas
@@ -70,9 +70,22 @@ function flow() {
     id: 561, turmaId: "2853538", bimestre: 3, disciplinaId: "1105", notaConceitoAlunos: [{ codigoAluno: "6539974", disciplinaId: 138, nota: 10, conceitoId: null }], justificativa: null
   }]), authHeaders);
   track(fechamentoRes, "Fechamento de Turmas"); sleep(1);
+
+  // Relatório - Filtros Componentes Curriculares
+  let filtrosRes = http.get(`${BASE_URL}/relatorios/filtros/componentes-curriculares/anos-letivos/2025/ues/-99/modalidades/5/?anos=-99&anos=1&anos=2&anos=3&anos=4&anos=5&anos=6&anos=7&anos=8&anos=9`, authHeaders);
+  track(filtrosRes, "Relatório - Filtros Componentes Curriculares"); sleep(1);
+
+  // Relatório - Pareceres Conclusivos
+  let parecerRes = http.post(`${BASE_URL}/relatorios/pareceres-conclusivos`, JSON.stringify({
+    anoLetivo: 2025, dreCodigo: "108100", ueCodigo: "", modalidade: "5", semestre: null, ciclo: 0, anos: [], parecerConclusivoId: 0, tipoFormatoRelatorio: "1", historico: false
+  }), authHeaders);
+  track(parecerRes, "Relatório - Pareceres Conclusivos"); sleep(1);
+
+  // Abrangências - DREs
+  let dresRes = http.get(`${BASE_URL}/abrangencias/false/dres`, authHeaders);
+  track(dresRes, "Abrangências - DREs"); sleep(1);
 }
 
-// Métricas
 function track(res, name) {
   Duration.add(res.timings.duration);
   Reqs.add(1);
