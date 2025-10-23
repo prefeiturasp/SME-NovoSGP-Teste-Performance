@@ -18,7 +18,7 @@ export function handleSummary(data) {
 // ----------------- CONFIGURAÇÃO - LOAD TEST -----------------
 export const options = {
   stages: [
-    { duration: '30s', target: 1 },  // carga VUs
+    { duration: '60s', target: 1 },  // carga VUs
   ],
 };
 
