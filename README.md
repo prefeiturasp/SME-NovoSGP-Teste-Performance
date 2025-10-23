@@ -18,10 +18,11 @@ projeto/
 │   └── testes/
 │       ├── load_test.js
 │       ├── ramp_test.js
+│       ├── soak_test.js
+│       ├── spike_test.js
 │       └── stress_test.js
 └── report/
     └── summary.html
-
 ```
 
 ---
@@ -43,6 +44,24 @@ stages: [
   { duration: '1m', target: 50 },
   { duration: '2m', target: 100 },
   { duration: '2m', target: 200 },
+]
+```
+
+### 3. Soak Test (Teste de Encharcamento)
+- Mantém muitos usuários conectados por longos períodos.
+```javascript
+stages: [
+  { duration: '5m', target: 500 },
+]
+```
+
+### 4. Spike Test
+- Simula um pico repentino de usuários.
+```javascript
+stages: [
+  { duration: '1m', target: 50 },
+  { duration: '10s', target: 500 },
+  { duration: '3m', target: 50 },
 ]
 ```
 
