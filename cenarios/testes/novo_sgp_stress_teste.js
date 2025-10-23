@@ -51,8 +51,6 @@ function flow() {
 
   sleep(1);
 
-  // Igual ao fluxo do ramp (Turmas, Pendências, Diário, Conselho, Calendário, etc.)
-  // Reaproveitando para manter consistência
   track(http.get(`${BASE_URL}/abrangencias/turmas/vigentes`, authHeaders), "Turmas vigentes"); sleep(1);
 
   track(http.get(`${BASE_URL}/pendencias/listar?turmaCodigo=&tipoPendencia=0&tituloPendencia=&numeroPagina=1&numeroRegistros=10`, authHeaders), "Pendências"); sleep(1);
