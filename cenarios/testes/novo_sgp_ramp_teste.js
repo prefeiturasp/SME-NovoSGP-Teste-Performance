@@ -3,37 +3,40 @@ import { check, sleep } from 'k6';
 import { Trend, Rate, Counter } from 'k6/metrics';
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 
-// Métricas
+// ----------------- MÉTRICAS -----------------
 export let Duration = new Trend('duration_total');
 export let FailRate = new Rate('fail_rate');
 export let SuccessRate = new Rate('success_rate');
 export let Reqs = new Counter('reqs_total');
 export let Errors = new Counter('errors_total');
 
-// Relatório
+// ----------------- RELATÓRIO -----------------
 export function handleSummary(data) {
-  return { "../../report/ramp_teste.html": htmlReport(data) };
+  return { "../../report/load_teste.html": htmlReport(data) };
 }
 
-// Configuração - Ramp
+// ----------------- CONFIGURAÇÃO - RAMP TEST -----------------
 export const options = {
   stages: [
-    { duration: '1s', target: 1 },   // sobe para 2 VUs
-    { duration: '1s', target: 1 },  // aumenta para 5
-    { duration: '1s', target: 1 }, // atinge 10
+    { duration: '30s', target: 1 },  // carga VUs
+    { duration: '1s', target: 1 },   // sobe
+    { duration: '1s', target: 1 },   // aumenta
+    { duration: '1s', target: 1 },   // atinge 
     { duration: '1s', target: 0 },   // finaliza
   ],
 };
 
-const BASE_URL = 'https://hom-novosgp.sme.prefeitura.sp.gov.br/api/v1';
-const USER = 'marlon.amcom';
-const PASS = 'Sgp@1234';
+// ----------------- VARIÁVEIS DE AMBIENTE -----------------
+const BASE_URL = __ENV.BASE_URL || 'https://hom-novosgp.sme.prefeitura.sp.gov.br/api/v1';
+const USER = __ENV.USER;
+const PASS = __ENV.PASS;
+const USER_ALT = __ENV.USER_ALT;
+const PASS_ALT = __ENV.PASS_ALT;
 
-// Usuário específico para Diário de Bordo e Calendário
-const USER_ALT = '7507241';
-const PASS_ALT = 'Sgp@1234';
-
-export default function () { flow(); }
+// ----------------- EXECUÇÃO PRINCIPAL -----------------
+export default function () {
+  flow();
+}
 
 function flow() {
   // Login principal
@@ -52,18 +55,16 @@ function flow() {
 
   sleep(1);
 
-  // Turmas
+  // --------- Cenário funcional típico de carga ---------
   track(http.get(`${BASE_URL}/abrangencias/turmas/vigentes`, authHeaders), "Turmas vigentes"); sleep(1);
 
-  // Pendências
   track(http.get(`${BASE_URL}/pendencias/listar?turmaCodigo=&tipoPendencia=0&tituloPendencia=&numeroPagina=1&numeroRegistros=10`, authHeaders), "Pendências"); sleep(1);
 
-  // Relatório de Faltas
   track(http.post(`${BASE_URL}/relatorios/faltas-frequencia-mensal`, JSON.stringify({
-    exibirHistorico: false, anoLetivo: "2025", codigoDre: "108100", codigoUe: "-99", modalidade: "5", codigosTurmas: ["-99"], mesesReferencias: ["4"], tipoFormatoRelatorio: "1"
+    exibirHistorico: false, anoLetivo: "2025", codigoDre: "108100", codigoUe: "-99", modalidade: "5",
+    codigosTurmas: ["-99"], mesesReferencias: ["4"], tipoFormatoRelatorio: "1"
   }), authHeaders), "Relatório de Faltas"); sleep(1);
 
-  // Diário de Bordo (com login alternativo e texto longo)
   track(http.post(`${BASE_URL}/diarios-bordo`, JSON.stringify({
     aulaId: "251810099",
     planejamento: textoPlanejamento(),
@@ -71,7 +72,6 @@ function flow() {
     componenteCurricularId: "512"
   }), authAltHeaders), "Diário de Bordo"); sleep(1);
 
-  // Conselho
   track(http.post(`${BASE_URL}/conselhos-classe/recomendacoes`, JSON.stringify({
     conselhoClasseId: 683687,
     fechamentoTurmaId: 960168,
@@ -83,7 +83,6 @@ function flow() {
     recomendacaoAlunoIds: [12]
   }), authHeaders), "Conselho de Classe"); sleep(1);
 
-  // Calendário (login alternativo)
   track(http.post(`${BASE_URL}/calendarios/frequencias`, JSON.stringify({
     aulaId: 65,
     listaFrequencia: [
@@ -98,30 +97,27 @@ function flow() {
     ]
   }), authAltHeaders), "Calendário - Frequências"); sleep(1);
 
-  // Fechamento
   track(http.post(`${BASE_URL}/fechamentos/turmas`, JSON.stringify([{
     id: 561, turmaId: "2853538", bimestre: 3, disciplinaId: "1105",
     notaConceitoAlunos: [{ codigoAluno: "6539974", disciplinaId: 138, nota: 10, conceitoId: null }],
     justificativa: null
   }]), authHeaders), "Fechamento de Turmas"); sleep(1);
 
-  // Relatórios extras
   track(http.get(`${BASE_URL}/relatorios/filtros/componentes-curriculares/anos-letivos/2025/ues/-99/modalidades/5/?anos=-99&anos=1&anos=2&anos=3&anos=4&anos=5&anos=6&anos=7&anos=8&anos=9`, authHeaders), "Relatório - Filtros"); sleep(1);
+
   track(http.post(`${BASE_URL}/relatorios/pareceres-conclusivos`, JSON.stringify({
     anoLetivo: 2025, dreCodigo: "108100", ueCodigo: "", modalidade: "5", semestre: null, ciclo: 0,
     anos: [], parecerConclusivoId: 0, tipoFormatoRelatorio: "1", historico: false
   }), authHeaders), "Relatório - Pareceres Conclusivos"); sleep(1);
 
-  // Abrangências
   track(http.get(`${BASE_URL}/abrangencias/false/dres`, authHeaders), "Abrangências - DREs"); sleep(1);
 }
 
-// Gera planejamento longo
+// ----------------- FUNÇÕES AUXILIARES -----------------
 function textoPlanejamento() {
   return "<p>" + "Planejamento de aula automatizado. ".repeat(10) + "</p>";
 }
 
-// Função de métricas
 function track(res, name) {
   if (res.status !== 200) {
     console.log(`⚠️ [${name}] falhou. Status: ${res.status}`);
