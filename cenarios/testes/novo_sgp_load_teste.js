@@ -18,18 +18,16 @@ export function handleSummary(data) {
 // ----------------- CONFIGURAÇÃO - LOAD TEST -----------------
 export const options = {
   stages: [
-    { duration: '10s', target: 1 },  // carga VUs
+    { duration: '30s', target: 1 },  // carga VUs
   ],
 };
 
-// ----------------- CONFIGURAÇÃO -----------------
-const BASE_URL = 'https://hom-novosgp.sme.prefeitura.sp.gov.br/api/v1';
-const USER = 'marlon.amcom';
-const PASS = 'Sgp@1234';
-
-// Usuário alternativo
-const USER_ALT = '7507241';
-const PASS_ALT = 'Sgp@1234';
+// ----------------- VARIÁVEIS DE AMBIENTE -----------------
+const BASE_URL = __ENV.BASE_URL || 'https://hom-novosgp.sme.prefeitura.sp.gov.br/api/v1';
+const USER = __ENV.USER;
+const PASS = __ENV.PASS;
+const USER_ALT = __ENV.USER_ALT;
+const PASS_ALT = __ENV.PASS_ALT;
 
 // ----------------- EXECUÇÃO PRINCIPAL -----------------
 export default function () {
